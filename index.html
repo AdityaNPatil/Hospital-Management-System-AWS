@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hospital Management System</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #e9ecef;
+            margin: 0;
+            padding: 0;
+            transition: background-color 0.5s ease;
+        }
+
+        .container {
+            width: 80%;
+            margin: 50px auto;
+            background-color: #ffffff;
+            padding: 30px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            border-radius: 12px;
+            animation: fadeIn 1s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        h1,
+        h2 {
+            color: #343a40;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            margin: 15px 0;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        input[type="text"],
+        input[type="number"],
+        select {
+            width: 100%;
+            padding: 12px;
+            margin: 5px 0;
+            border: 1px solid #ced4da;
+            border-radius: 6px;
+            box-sizing: border-box;
+            transition: border-color 0.3s ease;
+        }
+
+        input[type="text"]:focus,
+        input[type="number"]:focus,
+        select:focus {
+            border-color: #80bdff;
+            outline: none;
+        }
+
+        button {
+            width: 100%;
+            background-color: #007bff;
+            color: white;
+            padding: 14px 20px;
+            margin-top: 10px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+            transform: translateY(-2px);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        table,
+        th,
+        td {
+            border: 1px solid #dee2e6;
+        }
+
+        th,
+        td {
+            padding: 12px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #007bff; 
+            color: white; 
+        }
+
+        tr:nth-child(even) {
+            background-color: #f8f9fa; 
+        }
+
+        tr:hover {
+           background-color: #e2e6ea; 
+           transition: background-color 0.3s ease; 
+        }
+
+        .center {
+           text-align: center; 
+       }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>Hospital Management System</h1>
+
+        <!-- Search Patient Section -->
+        <div id="searchSection">
+            <h2>Search or Filter Patients</h2>
+            <div class="form-group">
+                <label for="searchName">Search by Name</label>
+                <input type="text" id="searchName" placeholder="Enter patient name">
+            </div>
+            <div class="form-group">
+                <label for="filterIllness">Filter by Illness</label>
+                <input type="text" id="filterIllness" placeholder="Enter illness">
+            </div>
+            <div class="form-group center">
+                <button onclick="searchPatients()">Search/Filter</button>
+            </div>
+        </div>
+
+        <!-- Add Patient Form -->
+        <div id="addPatientSection">
+            <h2>Add New Patient</h2>
+            <div class="form-group">
+                <label for="patientName">Patient Name</label>
+                <input type="text" id="patientName" placeholder="Enter patient name">
+            </div>
+            <div class="form-group">
+                <label for="patientAge">Patient Age</label>
+                <input type="number" id="patientAge" placeholder="Enter patient age">
+            </div>
+            <div class="form-group">
+                <label for="patientGender">Patient Gender</label>
+                <select id="patientGender">
+                    <option value="Male">Male</option>
+                    <option value="Female">Female</option>
+                    <option value="Other">Other</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="patientIllness">Patient Illness</label>
+                <input type="text" id="patientIllness" placeholder="Enter patient illness">
+            </div>
+            <div class="form-group center">
+                <button onclick="addPatient()">Add Patient</button>
+            </div>
+        </div>
+
+        <!-- Patient List -->
+        <div id="patientsSection">
+            <h2>Patient List</h2>
+            <table id="patientsTable">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Age</th>
+                        <th>Gender</th>
+                        <th>Illness</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Patient entries will appear here -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        const API_URL_ADD = 'https://2blghutg1i.execute-api.us-west-2.amazonaws.com/dev'; // Replace with your API Gateway URL
+        const API_URL_SEARCH = 'https://2blghutg1i.execute-api.us-west-2.amazonaws.com/dev'; // Replace with your API Gateway URL
+
+        // Function to search/filter patients
+        function searchPatients() {
+            // Get the values from the input fields
+            const name = document.getElementById('searchName').value;
+            const illness = document.getElementById('filterIllness').value;
+        
+            // Construct the query parameters
+            const queryParams = new URLSearchParams();
+            if (name) queryParams.append('name', name);
+            if (illness) queryParams.append('illness', illness);
+        
+            // Construct the API URL with query parameters
+            const url = `https://2blghutg1i.execute-api.us-west-2.amazonaws.com/dev?${queryParams.toString()}`;
+        
+            fetch(url)
+                .then(response => {
+                    // Check if the response status is OK (200-299 range)
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+        
+                    // Return the response as text for further validation
+                    return response.text();
+                })
+                .then(text => {
+                    // Check if the response body is not empty or undefined
+                    if (text) {
+                        console.log("Raw response text:", text); // Log raw text for debugging
+                        return JSON.parse(text);  // Parse the JSON string to a JavaScript object
+                    } else {
+                        console.log("Empty response received");
+                        return [];  // Return an empty array if the response is empty
+                    }
+                })
+                .then(data => {
+                    // Log the parsed patient data
+                    console.log("Parsed patient data:", data);
+        
+                    // Populate the table with the retrieved data
+                    const tableBody = document.querySelector("#patientsTable tbody");
+                    tableBody.innerHTML = ""; // Clear the existing table rows
+        
+                    data.forEach(patient => {
+                        const row = document.createElement("tr");
+        
+                        const nameCell = document.createElement("td");
+                        nameCell.textContent = patient.Name;
+        
+                        const ageCell = document.createElement("td");
+                        ageCell.textContent = patient.Age;
+        
+                        const genderCell = document.createElement("td");
+                        genderCell.textContent = patient.Gender;
+        
+                        const illnessCell = document.createElement("td");
+                        illnessCell.textContent = patient.Illness;
+        
+                        // Append the cells to the row
+                        row.appendChild(nameCell);
+                        row.appendChild(ageCell);
+                        row.appendChild(genderCell);
+                        row.appendChild(illnessCell);
+        
+                        // Append the row to the table body
+                        tableBody.appendChild(row);
+                    });
+                })
+                .catch(error => {
+                    // Log any errors encountered during the process
+                    console.error("Error fetching patients:", error);
+                });
+        }
+        
+        
+        
+
+
+
+
+        // Function to add a new patient
+        function addPatient() {
+            const name = document.getElementById('patientName').value;
+            const age = document.getElementById('patientAge').value;
+            const gender = document.getElementById('patientGender').value;
+            const illness = document.getElementById('patientIllness').value;
+
+            const patient = {
+                Name: name,
+                Age: age,
+                Gender: gender,
+                Illness: illness
+            };
+
+            fetch(API_URL_ADD, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(patient)
+            })
+                .then(response => response.json())
+                .then(data => {
+                    alert('Patient added successfully');
+                    document.getElementById('patientName').value = '';
+                    document.getElementById('patientAge').value = '';
+                    document.getElementById('patientGender').value = '';
+                    document.getElementById('patientIllness').value = '';
+                    searchPatients();
+                })
+                .catch(err => console.error('Error adding patient:', err));
+        }
+
+        // Initial load of patients list
+        window.onload = searchPatients;
+    </script>
+</body>
+
+</html>
